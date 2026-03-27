@@ -21,7 +21,7 @@ pip install z3-solver pwntools Pillow numpy requests dnslib
 
 **Linux (apt):**
 ```bash
-apt install ffmpeg qrencode sagemath
+apt install ffmpeg qrencode
 ```
 
 **macOS (Homebrew):**
@@ -46,6 +46,12 @@ brew install ffmpeg qrencode
 - [linux-privesc.md](linux-privesc.md) - Sudo wildcard parameter injection (fnmatch), crafted pcap for sudoers.d, monit confcheck process injection, Apache -d override, backup cronjob SUID, PostgreSQL COPY TO PROGRAM RCE, PostgreSQL backup credential extraction, NFS share exploitation, SSH Unix socket tunneling, PaperCut Print Deploy privesc, Squid proxy pivoting, Zabbix admin password reset via MySQL, WinSSHTerm credential decryption
 
 ---
+
+## When to Pivot
+
+- If the puzzle is actually centered on cryptography or number theory, switch to `/ctf-crypto`.
+- If the challenge is a real binary exploit instead of a jail, toy VM, or encoding problem, switch to `/ctf-pwn` or `/ctf-reverse`.
+- If the input is mostly files, images, audio, or packet captures that need recovery work first, switch to `/ctf-forensics`.
 
 ## General Tips
 
