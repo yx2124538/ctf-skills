@@ -9,7 +9,7 @@ Detailed pwn notes that support [`SKILL.md`](SKILL.md). Read this file after con
   - [talloc Pool Header Forgery](#talloc-pool-header-forgery)
   - [JIT Compilation Exploits](#jit-compilation-exploits)
   - [Type Confusion in Interpreters](#type-confusion-in-interpreters)
-  - [Off-by-One Index / Size Corruption](#off-by-one-index--size-corruption)
+  - [Off-by-One Index / Size Corruption](#off-by-one-index-size-corruption)
   - [Double win() Call](#double-win-call)
   - [Arbitrary Read/Write to Shell via GOT Overwrite](#arbitrary-readwrite-to-shell-via-got-overwrite)
   - [Stack Leak via __environ and memcpy Overflow](#stack-leak-via-__environ-and-memcpy-overflow)
@@ -47,7 +47,7 @@ Detailed pwn notes that support [`SKILL.md`](SKILL.md). Read this file after con
   - [TLS Destructor Hijack via `__call_tls_dtors`](#tls-destructor-hijack-via-__call_tls_dtors)
   - [Signed Int Overflow to Negative OOB Heap Write](#signed-int-overflow-to-negative-oob-heap-write)
   - [Custom Shadow Stack Bypass via Pointer Overflow](#custom-shadow-stack-bypass-via-pointer-overflow)
-  - [Windows SEH Overwrite + VirtualAlloc ROP](#windows-seh-overwrite--virtualalloc-rop)
+  - [Windows SEH Overwrite + VirtualAlloc ROP](#windows-seh-overwrite-virtualalloc-rop)
   - [SeDebugPrivilege to SYSTEM](#sedebugprivilege-to-system)
   - [mmap/munmap Size Mismatch UAF](#mmapmunmap-size-mismatch-uaf)
   - [strcspn Indirect Null Byte Injection](#strcspn-indirect-null-byte-injection)
@@ -83,7 +83,7 @@ Detailed pwn notes that support [`SKILL.md`](SKILL.md). Read this file after con
 
 **UAF vtable pointer encoding shell argument:** After UAF, heap spray places `system()` at offset +3. Object address containing `0x6873` ("sh") in low bytes doubles as the command string argument when `system(this)` is called through the hijacked vtable. See [heap-techniques.md](heap-techniques.md#uaf-vtable-pointer-encoding-shell-argument-bctf-2017).
 
-**Fastbin stdout vtable two-stage hijack (PIE + Full RELRO):** Use 0x7f byte in libc's stdout region as fake fastbin chunk size. Two-stage: first vtable redirect to `gets()` (rdi=stdout), then `gets()` overwrites vtable again to `system()` with command string. See [heap-techniques.md](heap-techniques.md#fastbin-stdout-vtable-two-stage-hijack-for-pie-full-relro-asis-ctf-2017).
+**Fastbin stdout vtable two-stage hijack (PIE + Full RELRO):** Use 0x7f byte in libc's stdout region as fake fastbin chunk size. Two-stage: first vtable redirect to `gets()` (rdi=stdout), then `gets()` overwrites vtable again to `system()` with command string. See [heap-techniques.md](heap-fsop.md#fastbin-stdout-vtable-two-stage-hijack-for-pie-full-relro-asis-ctf-2017).
 
 See [heap-techniques.md](heap-techniques.md) for House of Apple 2 FSOP chain (+ setcontext SUID variant), House of Orange/Spirit/Lore/Force, tcache stashing unlink, custom allocator exploitation (nginx pools, talloc), classic unlink, musl libc heap. See [advanced.md](advanced.md) for ret2dlresolve, heap overlap via base conversion, tree data structure stack underallocation.
 

@@ -1,8 +1,8 @@
 # CTF Web - Advanced Server-Side Techniques
 
 ## Table of Contents
-- [ExifTool CVE-2021-22204 — DjVu Perl Injection (0xFun 2026)](#exiftool-cve-2021-22204--djvu-perl-injection-0xfun-2026)
-- [Go Rune/Byte Length Mismatch + Command Injection (VuwCTF 2025)](#go-runebyte-length-mismatch--command-injection-vuwctf-2025)
+- [ExifTool CVE-2021-22204 — DjVu Perl Injection (0xFun 2026)](#exiftool-cve-2021-22204-djvu-perl-injection-0xfun-2026)
+- [Go Rune/Byte Length Mismatch + Command Injection (VuwCTF 2025)](#go-runebyte-length-mismatch-command-injection-vuwctf-2025)
 - [Zip Symlink Path Traversal (UTCTF 2024)](#zip-symlink-path-traversal-utctf-2024)
 - [Path Traversal Bypass Techniques](#path-traversal-bypass-techniques)
   - [Brace Stripping](#brace-stripping)
@@ -15,22 +15,23 @@
 - [Flask/Werkzeug Debug Mode Exploitation](#flaskwerkzeug-debug-mode-exploitation)
 - [XXE with External DTD Filter Bypass](#xxe-with-external-dtd-filter-bypass)
 - [Path Traversal: URL-Encoded Slash Bypass](#path-traversal-url-encoded-slash-bypass)
-- [WeasyPrint SSRF & File Read (CVE-2024-28184, Nullcon 2026)](#weasyprint-ssrf--file-read-cve-2024-28184-nullcon-2026)
+- [WeasyPrint SSRF & File Read (CVE-2024-28184, Nullcon 2026)](#weasyprint-ssrf-file-read-cve-2024-28184-nullcon-2026)
   - [Variant 1: Blind SSRF via Attachment Oracle](#variant-1-blind-ssrf-via-attachment-oracle)
   - [Variant 2: Local File Read via file:// Attachment](#variant-2-local-file-read-via-file-attachment)
-- [MongoDB Regex Injection / $where Blind Oracle (Nullcon 2026)](#mongodb-regex-injection--where-blind-oracle-nullcon-2026)
-- [Pongo2 / Go Template Injection via Path Traversal (Nullcon 2026)](#pongo2--go-template-injection-via-path-traversal-nullcon-2026)
+- [MongoDB Regex Injection / $where Blind Oracle (Nullcon 2026)](#mongodb-regex-injection-where-blind-oracle-nullcon-2026)
+- [Pongo2 / Go Template Injection via Path Traversal (Nullcon 2026)](#pongo2-go-template-injection-via-path-traversal-nullcon-2026)
 - [ZIP Upload with PHP Webshell (Nullcon 2026)](#zip-upload-with-php-webshell-nullcon-2026)
 - [basename() Bypass for Hidden Files (Nullcon 2026)](#basename-bypass-for-hidden-files-nullcon-2026)
 - [wget CRLF Injection for SSRF-to-SMTP (SECCON 2017)](#wget-crlf-injection-for-ssrf-to-smtp-seccon-2017)
 - [Gopher SSRF to MySQL Blind SQLi (34C3 CTF 2017, AceBear 2018)](#gopher-ssrf-to-mysql-blind-sqli-34c3-ctf-2017-acebear-2018)
 - [React Server Components Flight Protocol RCE (Ehax 2026)](#react-server-components-flight-protocol-rce-ehax-2026)
-  - [Step 1 — Identify RSC via HTTP headers](#step-1--identify-rsc-via-http-headers)
-  - [Step 2 — Exploit Flight deserialization for RCE](#step-2--exploit-flight-deserialization-for-rce)
+- [WAV Polyglot Upload Bypass via .wave Extension (PlaidCTF 2018)](#wav-polyglot-upload-bypass-via-wave-extension-plaidctf-2018)
+  - [Step 1 — Identify RSC via HTTP headers](#step-1-identify-rsc-via-http-headers)
+  - [Step 2 — Exploit Flight deserialization for RCE](#step-2-exploit-flight-deserialization-for-rce)
   - [Step 3 — Exfiltrate data via NEXT_REDIRECT](#step-3--exfiltrate-data-via-next_redirect)
-  - [Step 4 — Bypass WAF keyword filters](#step-4--bypass-waf-keyword-filters)
-  - [Step 5 — Post-RCE enumeration](#step-5--post-rce-enumeration)
-  - [Step 6 — Lateral movement to internal services](#step-6--lateral-movement-to-internal-services)
+  - [Step 4 — Bypass WAF keyword filters](#step-4-bypass-waf-keyword-filters)
+  - [Step 5 — Post-RCE enumeration](#step-5-post-rce-enumeration)
+  - [Step 6 — Lateral movement to internal services](#step-6-lateral-movement-to-internal-services)
 See also: [server-side-advanced-2.md](server-side-advanced-2.md) for Part 2 (SSRF-to-Docker API RCE, Castor XML xsi:type deserialization, Apache ErrorDocument expression file read, SQLite file path traversal, HQL non-breaking space injection, base64-encoded path traversal, Windows 8.3 short filename bypass, URL parse_url @ symbol bypass, PHP zip:// wrapper LFI, XSS-to-SSTI chain, INSERT INTO column shift SQLi, session cookie forgery via timestamp PRNG).
 
 ---
@@ -755,3 +756,25 @@ throw Object.assign(new Error('NEXT_REDIRECT'),
 **Full exploit chain:** Identify RSC headers → craft fake Flight chunk → bypass WAF → achieve RCE → enumerate filesystem → discover internal services → lateral movement via `nc` to retrieve flag.
 
 **Detection:** `Accept: text/x-component` + `Next-Action` header in requests, `createServerReference()` in client JS, Next.js Server Actions with user-controlled form data.
+
+---
+
+## WAV Polyglot Upload Bypass via .wave Extension (PlaidCTF 2018)
+
+**Pattern (idIoT: Action):** Site accepts `ogg/wav/wave/webm/mp3` uploads and validates by parsing the RIFF/WAVE header. CSP is `script-src 'self'`, so inline XSS fails, but a same-origin `<script src=...>` to an uploaded file would run. Browsers refuse to load responses whose Content-Type starts with `audio/`, yet Apache on many distros has no MIME mapping for the `.wave` extension and serves it as the default (usually `application/octet-stream` or with no `Content-Type`).
+
+**Exploit build:**
+1. Construct a file whose first bytes parse as a valid RIFF/WAVE container but whose `data` chunk contents open a JavaScript block comment and embed the payload.
+2. Save with extension `.wave` (not `.wav`) so Apache does not label it as audio.
+3. Inject `<script src="/uploads/evil.wave"></script>` via the existing XSS sink — the browser now executes the script from a same-origin URL, satisfying `script-src 'self'`.
+
+```text
+RIFF=1/*WAVEfmt ..........]................LIST....INFO
+ISFT....Lavf57.83.100.data........................
+........*/ ; alert(1);
+```
+Hex view (truncated): the first 4 bytes `52 49 46 46` still form `RIFF`; the quirky length field `3d 31 2f 2a` (`=1/*`) is valid for WAV parsers but also opens a JS comment that runs until the `*/ ;alert(1);` tail at the end of the `data` chunk.
+
+**Key insight:** File-upload filters that only check magic bytes or MIME based on extension are defeated by any extension the web server has no explicit mapping for. Test each permitted extension against the server's MIME database (`mime.types`) — whichever one falls through to `application/octet-stream` becomes a script gadget under `script-src 'self'`. Fix by enforcing a strict response `Content-Type` for user uploads (e.g., `application/octet-stream` + `Content-Disposition: attachment`).
+
+**References:** PlaidCTF 2018 — writeup 10018
